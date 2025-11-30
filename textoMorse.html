@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MORSE IOT</title>
+<style>
+
+body {
+  background: radial-gradient(circle at top left, #001018, #000);
+  font-family: 'Orbitron', sans-serif;
+  color: #ffd000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 3em;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px #ffa600, 0 0 40px#ffa600;
+  animation: flicker 3s infinite alternate;
+}
+
+@keyframes flicker {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+  }
+  20%, 24%, 55% {
+    opacity: 0.3;
+  }
+}
+
+.container {
+  background: rgba(27, 23, 0, 0.678);
+  border: 1px solid #ffd000;
+  box-shadow: 0 0 50px #ffa600;
+  padding: 40px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 700px;
+  text-align: center;
+  backdrop-filter: blur(5px);
+}
+
+input {
+  width: 70%;
+  padding: 15px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid #ffd000;
+  color: #ffa600;
+  border-radius: 10px;
+  font-size: 1.2em;
+  outline: none;
+  text-align: center;
+}
+
+input:focus {
+  box-shadow: 0 0 20px #ffa600;
+}
+
+button {
+  margin: 10px;
+  padding: 15px 20px;
+  background: #ffd000;
+  border: none;
+  border-radius: 10px;
+  color: #000;
+  font-weight: bold;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+button:hover {
+  background: #ffc628;
+  transform: scale(1.1);
+  box-shadow: 0 0 20px #ffa600;
+}
+
+#resultado {
+  margin-top: 30px;
+  font-size: 1.5em;
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px #ffd000;
+  word-wrap: break-word;
+}
+
+.light {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: rgba(255, 217, 0, 0.096);
+  border: 3px solid #ffd000;
+  margin: 30px auto 0;
+  box-shadow: 0 0 10px #ffa600 inset;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.light.on {
+  background: #ffc628;
+  box-shadow: 0 0 50px #ffa600;
+}
+
+footer {
+  position: absolute;
+  bottom: 10px;
+  font-size: 0.8em;
+  color: rgba(0,255,255,0.4);
+}
+
+.link{
+  text-decoration: none;
+  padding: 15px 20px;
+  background: #00e0ff;
+  border: none;
+  position: absolute;
+  top: 2%;
+  left: 2%;
+  color: #000;
+  font-weight: bold;
+  font-size: 0.7em;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+</style>
+</head>
+<body>
+<a href="index.html" class="link">Morse para texto</a>
+<h1>MORSE IOT</h1>
+<div class="container">
+  <input type="text" id="texto" placeholder="Digite texto para transformar em morse">
+  <div>
+    <button onclick="traduzirParaMorse()">Texto para morse</button>
+    <button onclick="enviarMorse()">Enviar Morse</button>
+  </div>
+  <div id="resultado"></div>
+  <div class="light" id="light"></div>
+</div>
+
+<script>
+  const morse = {
+    // Letras
+    'A': '.-',    'B': '-...',  'C': '-.-.',  'D': '-..',
+    'E': '.',     'F': '..-.',  'G': '--.',   'H': '....',
+    'I': '..',    'J': '.---',  'K': '-.-',   'L': '.-..',
+    'M': '--',    'N': '-.',    'O': '---',   'P': '.--.',
+    'Q': '--.-',  'R': '.-.',   'S': '...',   'T': '-',
+    'U': '..-',   'V': '...-',  'W': '.--',   'X': '-..-',
+    'Y': '-.--',  'Z': '--..',
+  
+    // Números
+    '0': '-----', '1': '.----', '2': '..---', '3': '...--',
+    '4': '....-', '5': '.....', '6': '-....', '7': '--...',
+    '8': '---..', '9': '----.',
+  
+    // Pontuação
+    '.': '.-.-.-', ',': '--..--', '?': '.--..-', '!': '-.-.--',
+    ':': '---...', ';': '-.-.-.', "'": '.----.', '"': '.-..-.',
+    '/': '-..-.',  '(': '-.--.',  ')': '-.--.-', '&': '.-...',
+    '@': '.--.-.', '=': '-...-',  '+': '.-.-.',  '-': '-....-',
+    '_': '..--.-', '$': '...-..-', '%': '-----..-..-----',
+
+    // Letras acentuadas
+    'Á': '.--.-',  'À': '.--..',  'Â': '.-.-.',  'Ã': '.-..-',
+    'Ä': '.-.-',   'É': '..-..',  'È': '..-.-',  'Ê': '.-..--',
+    'Ë': '. -..--', 'Í': '..--',   'Ì': '..---',  'Î': '..-.--',
+    'Ï': '..-..-', 'Ó': '---.',   'Ò': '---..',  'Ô': '---.-',
+    'Õ': '---.--', 'Ö': '--.-..', 'Ú': '..--.--',  'Ù': '..--..',
+    'Û': '..--.-', 'Ü': '..--.-.', 'Ç': '-.-..',
+
+  
+    // Espaço e quebra de linha
+    ' ': '/', 
+    '\n': '·−·−·−'
+  };  
+
+const texto = {};
+for (let char in morse) {
+  texto[morse[char]] = char;
+}
+
+function traduzirParaMorse() {
+  const entrada = document.getElementById("texto").value.toUpperCase();
+  const resultado = document.getElementById("resultado");
+  let traducao = "";
+
+  for (let char of entrada) {
+    traducao += morse[char] ? morse[char] + " " : "? ";
+  }
+
+  resultado.innerHTML = traducao.trim();
+  tocarMorse(traducao);
+}
+
+function tocarMorse(codigo) {
+  const light = document.getElementById("light");
+  const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  let time = audioCtx.currentTime;
+
+  function beep(duracao) {
+    const osc = audioCtx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(700, time);
+    osc.connect(audioCtx.destination);
+    osc.start(time);
+    osc.stop(time + duracao);
+    return duracao;
+  }
+
+  for (let simbolo of codigo) {
+    if (simbolo === ".") {
+      setTimeout(() => light.classList.add("on"), (time - audioCtx.currentTime) * 1000);
+      beep(0.1);
+      setTimeout(() => light.classList.remove("on"), (time - audioCtx.currentTime + 0.1) * 1000);
+      time += 0.2;
+    } else if (simbolo === "-") {
+      setTimeout(() => light.classList.add("on"), (time - audioCtx.currentTime) * 1000);
+      beep(0.3);
+      setTimeout(() => light.classList.remove("on"), (time - audioCtx.currentTime + 0.3) * 1000);
+      time += 0.4;
+    } else if (simbolo === " ") {
+      time += 0.2;
+    } else if (simbolo === "/") {
+      time += 0.5;
+    }
+  }
+}
+</script>
+
+<script>
+function enviarMorse() {
+    const texto = document.getElementById("texto").textContent;
+    const resultado = document.getElementById("resultado").textContent;
+
+    const bodyData =
+        "texto=" + encodeURIComponent(texto) +
+        "&resultado" + encodeURIComponent(resultado);
+
+    fetch("enviarTexto.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: bodyData
+    })
+    .then(response => response.text())
+    .then(data => {
+        console.log("Resposta do PHP:", data);
+        alert("Morse enviado!");
+    })
+    .catch(error => console.error("Erro:", error));
+}
+</script>
