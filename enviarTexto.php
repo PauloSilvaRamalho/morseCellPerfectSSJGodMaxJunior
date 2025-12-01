@@ -7,14 +7,12 @@ $conexao = mysqli_connect(
     'paparell_codigomorse'
 );
 
-
-$id = $_POST['id'] ?? '';
-$traducao = $_POST['texto'] ?? '';
-$morse = $_POST['morse']
+$texto = $_POST['texto'] ?? '';
+$morse = $_POST['resultado'] ?? '';
 
 
 $update = $conexao->prepare("INSERT INTO morse_iot (morse, traducao) VALUES (?, ?)");
-$update->bind_param("ss", $morse, $traducao);
+$update->bind_param("ss", $morse, $texto);
 $update->execute();
 
 echo "OK";
