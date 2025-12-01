@@ -10,7 +10,6 @@ $conexao = mysqli_connect(
 $texto = $_POST['texto'] ?? '';
 $morse = $_POST['resultado'] ?? '';
 
-
 $update = $conexao->prepare("INSERT INTO morse_iot (morse, traducao) VALUES (?, ?)");
 $update->bind_param("ss", $morse, $texto);
 $update->execute();
